@@ -4,7 +4,7 @@ import app from './app.js';
 import express from 'express';
 import connectDB from './db/conn.js';
 
-dotenv.config({ path: './env' });
+dotenv.config({ path: './.env' });
 
 connectDB()
 .then(()=>{
