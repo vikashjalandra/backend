@@ -1,3 +1,3 @@
-const DB_NAME = 'mytube';
+const DB_NAME = 'georadiusDatabase';
 
 export default DB_NAME;

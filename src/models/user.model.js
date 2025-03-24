@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 const userSchema = new Schema({
     username: {
         type: String,
-        required: true,
         lowercase: true,
         trim: true,
         index: true,
@@ -31,13 +30,6 @@ const userSchema = new Schema({
     avatar: {
         type: String,
     },
-    coverImage: {
-        type: String,
-    },
-    watchHistory: [{
-        type: Schema.Types.ObjectId,
-        ref: "Video"
-    }],
     refreshToken: {
         type: String,
     },
