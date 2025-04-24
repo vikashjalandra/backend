@@ -7,10 +7,11 @@ import {Post} from '../models/post.model.js'
 // Create Post
 
 const createPost = asyncHandler(async (req, res) => {
-    const { title, content, latitude, longitude } = req.body
+    const { title, content,catogories, latitude, longitude } = req.body
+    console.log(req.body)
 
-    if([title, content, latitude, longitude].some((field) => field?.trim() === "")) {
-        throw new ApiError(400, "Image local path did't found")
+   if(!title || !content || !latitude || !longitude){
+        throw new ApiError(400, "All fields are required")
     }
 
     const imageLocalPath = req.files?.image[0]?.path;
@@ -31,7 +32,8 @@ const createPost = asyncHandler(async (req, res) => {
         photo: image.url,
         latitude,
         longitude,
-        postedBy: req.user._id
+        postedBy: req.user._id,
+        catogories,
     })
 
     return res.json(new ApiResponse(201, "Post created successfully", post))
@@ -42,9 +44,50 @@ const createPost = asyncHandler(async (req, res) => {
 const getAllPosts = asyncHandler(async (req, res) => {
     const posts = await Post.find()
 
-    return res.json(new ApiResponse(200, "All posts", posts))
+    return res.json(new ApiResponse(200, posts,"All posts"))
 }
 )
+
+const getPosts = asyncHandler(async (req, res) => {
+
+    console.log(req.user)
+    const { latitude, longitude } = req.body;
+    console.log(latitude, longitude)
+
+    if (!latitude || !longitude) {
+        throw new ApiError(400, "Latitude and longitude are required");
+    }
+
+    const radiusInKm = 10;
+    const radiusInMeters = radiusInKm * 1000;
+
+    const posts = await Post.find();
+
+    const filteredPosts = posts.filter(post => {
+        if (!post.latitude || !post.longitude) return false;
+
+        const toRadians = (degrees) => degrees * (Math.PI / 180);
+
+        const earthRadius = 6371e3; // Earth's radius in meters
+        const lat1 = toRadians(latitude);
+        const lat2 = toRadians(post.latitude);
+        const deltaLat = toRadians(post.latitude - latitude);
+        const deltaLon = toRadians(post.longitude - longitude);
+
+        const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                  Math.cos(lat1) * Math.cos(lat2) *
+                  Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const distance = earthRadius * c;
+
+        return distance <= radiusInMeters;
+    });
+
+    return res.json(new ApiResponse(200, filteredPosts,"Posts within 10km radius"));
+})
+
 
 // Get Post By Id
 
@@ -120,5 +163,6 @@ export {
     getAllPosts,
     getPostById,
     updatePost,
-    deletePost
+    deletePost,
+    getPosts
 }

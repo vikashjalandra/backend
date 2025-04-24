@@ -3,9 +3,12 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import JWT from "jsonwebtoken"
 
-export const verifyJWT = asyncHandler(async(req, _, next)=>{
+export const verifyJWT = asyncHandler(async(req,res, next)=>{
   try {
-      const token =req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer","")
+    console.log(req.body)
+    const {accessToken} = req.body
+    const token = accessToken || req.cookies?.accessToken || req.headers["authorization"]?.split(" ")[1]
+      console.log(token)
       if (!token) {
           throw new ApiError(401,"Unauthorized request")
       }

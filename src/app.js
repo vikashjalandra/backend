@@ -22,4 +22,11 @@ import postRouter from './routes/post.routes.js'
 app.use("/api/v1/users",userRouter)
 app.use("/api/v1/posts",postRouter)
 
+app.get("/",(req,res)=>{
+    res.json({
+        success:true,
+        message:"Welcome to the backend of the social media application"
+    })
+})
+
 export default app

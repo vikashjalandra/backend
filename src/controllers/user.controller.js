@@ -26,48 +26,27 @@ const generateAccessAndRefreshTokens = async (userId) => {
 // Register User
 const registerUser = asyncHandler(async (req, res) => {
     // Get user details from frontend
-    const { fullname, email, username, password } = req.body
+    const { fullname, email, password } = req.body
 
     // Validation
     if (
-        [fullname, email, username, password].some((field) => field?.trim() === "")
+        [fullname, email, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }
 
     // check if user exists
-    const existedUser = await User.findOne({
-        $or: [{ username }, { email }]
-    })
+    const existedUser = await User.findOne({email})
 
     if (existedUser) {
         throw new ApiError(409, "User already exists")
     }
 
-    // Check for images
-    const avatarLocalPath = req.files?.avatar[0]?.path
-
-    // console.log('Coverimage: '+coverImageLocalPath);
-
-
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required")
-    }
-
-    // Upload images
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-
-    if (!avatar) {
-        throw new ApiError(400, "Avatar file is required")
-    }
-
     // add data to db
     const user = await User.create({
         fullname,
-        avatar: avatar.url,
         email,
         password,
-        username: username.toLowerCase()
     })
 
     // remove password and refresh token from response
@@ -87,18 +66,15 @@ const registerUser = asyncHandler(async (req, res) => {
 // Login User
 const loginUser = asyncHandler(async (req, res) => {
     // take data from body
-    const { email, username, password } = req.body;
+    const { email, password } = req.body;
 
     // username or email
-    if (!(username || email)) {
-        throw new ApiError(400, "username or email is required")
+    if (! email) {
+        throw new ApiError(400, " email is required")
     }
-    console.log(`Email:${email} username:${username} password:${password}`);
+    console.log(`Email:${email} password:${password}`);
     // find user
-    const user = await User.findOne({
-        $or: [{ username }, { email }]
-
-    })
+    const user = await User.findOne({email})
 
     if (!user) {
         throw new ApiError(404, "user not found")
@@ -120,13 +96,15 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true
     }
 
+    req.user= loggedInUser
+
     // send cookies
     return res.status(200)
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(200, {
-                user: loggedInUser, accessToken, refreshToken
+                user: loggedInUser, accessToken, refreshToken,
             }, "User logged in successfully")
         )
 })

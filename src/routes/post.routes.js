@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { createPost, deletePost, getAllPosts, getPostById, updatePost } from "../controllers/post.controller.js";
+import { createPost, deletePost, getAllPosts,getPosts, getPostById, updatePost } from "../controllers/post.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router()
 
-router.route("/").get(getAllPosts)
+router.route("/all").get(getAllPosts)
+router.route("/localNews").post(getPosts)
 router.route("/:postId").get(getPostById)
 
 // secured routes
